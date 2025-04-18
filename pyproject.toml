@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=64.0", "setuptools-scm>=8"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+
+[project]
+name = "syn-sem-control"
+version = "0.1.0"
+description = "Experiments for the paper 'Syntactic and Semantic Control for Large Language Models via sequential Monte Carlo'"
+authors = []
+readme = "README.md"
+requires-python = ">=3.10"
+
+dependencies = [
+    "genlm-eval[spider,molecules] @ git+https://github.com/genlm/genlm-eval.git@benlebrun/dev",
+    "llamppl @ git+https://github.com/genlm/llamppl.git@improve-resampling",
+    "click",
+    "asyncio",
+    "nltk",
+    "gdown",
+]
+
+[tool.setuptools.packages.find]
+include = ["syn_sem_control", "syn_sem_control*"]
