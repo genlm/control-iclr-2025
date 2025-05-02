@@ -1,18 +1,32 @@
 import click
-from genlm.eval.domains.molecular_synthesis.dataset import MolecularSynthesisDataset
-from genlm.eval.domains.molecular_synthesis.evaluator import MolecularSynthesisEvaluator
-from syn_sem_control.molecular_synthesis import models
-from syn_sem_control.common import common_options, run_model_evaluation, setup_model_and_params
+from genlm.control import BoolCFG
+from genlm.eval.domains.molecular_synthesis import (
+    MolecularSynthesisDataset,
+    PartialSmiles,
+    MolecularSynthesisEvaluator,
+    default_prompt_formatter,
+)
 
-MODEL_CLASSES = {
-    "base": (models.BaseLM, False, False, False),  # (class, needs_particles, needs_ess, needs_resampling_method)
-    "lcd": (models.GrammarOnlyImproperlyWeighted, False, False, False),
-    "grammar-only-is": (models.GrammarOnlyProperlyWeighted, True, False, False),
-    "grammar-only-smc": (models.GrammarOnlyProperlyWeighted, True, True, True),
-    "sample-rerank": (models.FullModelImproperlyWeighted, True, False, False),
-    "full-is": (models.FullModel, True, False, False),
-    "full-smc": (models.FullModel, True, True, True),
-}
+from syn_sem_control.models import PotentialFactory
+from syn_sem_control.common import (
+    common_options,
+    run_model_evaluation,
+    setup_model_and_params,
+)
+from syn_sem_control.util import make_prompt_formatter
+
+
+class MolecularSynthesisPotentialFactory(PotentialFactory):
+    def __init__(self, grammar_path):
+        with open(grammar_path, "r") as f:
+            self.grammar = f.read()
+
+    def get_fast_potential(self, instance):
+        return BoolCFG.from_lark(self.grammar)
+
+    def get_expensive_potential(self, instance):
+        return PartialSmiles()
+
 
 @click.command(help="Run Molecular Synthesis evaluation.")
 @click.option(
@@ -26,24 +40,42 @@ MODEL_CLASSES = {
     help="Name of the language model to use.",
 )
 @click.option(
-    "--max-tokens", # Override common default
+    "--max-tokens",  # Override common default
     default=40,
     help="Maximum number of tokens to generate.",
+)
+@click.option(
+    "--grammar-path",  # Override common default
+    default="smiles.lark",
+    help="Path to the grammar file.",
 )
 def main(**kwargs):
     model_type = kwargs.pop("model_type")
     data_dir = kwargs.pop("smiles_file")
-    
-    model_class, kwargs = setup_model_and_params(model_type, kwargs, MODEL_CLASSES)    
+
+    model_class, kwargs = setup_model_and_params(model_type, kwargs)
     dataset = MolecularSynthesisDataset.from_smiles(data_dir)
     evaluator = MolecularSynthesisEvaluator()
-    
+
+    potential_factory = MolecularSynthesisPotentialFactory(kwargs.pop("grammar_path"))
+
+    def cache_key_fn(instance):
+        return "always_true"
+
+    prompt_formatter = make_prompt_formatter(
+        kwargs.get("lm_name", ""), default_prompt_formatter
+    )
+
     run_model_evaluation(
         dataset=dataset,
         model_class=model_class,
         evaluator=evaluator,
-        **kwargs
+        potential_factory=potential_factory,
+        cache_key_fn=cache_key_fn,
+        prompt_formatter=prompt_formatter,
+        **kwargs,
     )
+
 
 if __name__ == "__main__":
     main()

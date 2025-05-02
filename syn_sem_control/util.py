@@ -7,7 +7,7 @@ class ImproperlyWeightedSetTokenSampler(SetTokenSampler):
     async def sample(self, context):
         x, _, logp = await super().sample(context)
         return x, 0, logp
-    
+
 
 def improperly_weighted_eager_token_sampler(llm, bool_cfg):
     return ImproperlyWeightedSetTokenSampler(EagerSetSampler(llm, bool_cfg))
@@ -15,13 +15,22 @@ def improperly_weighted_eager_token_sampler(llm, bool_cfg):
 
 def mean_ci_results(results, ci=0.95, n_bootstrap=10000):
     return mean_ci(
-        [r["weighted_accuracy"] for rs in results['all_instance_results'] for r in rs],
+        [r["weighted_accuracy"] for rs in results["all_instance_results"] for r in rs],
         ci=ci,
-        n_bootstrap=n_bootstrap
+        n_bootstrap=n_bootstrap,
     )
 
 
 def mean_ci(values, ci=0.95, n_bootstrap=10000):
-    return bootstrap_ci(
-        values, metric=np.mean, ci=ci, n_bootstrap=n_bootstrap
-    )
+    return bootstrap_ci(values, metric=np.mean, ci=ci, n_bootstrap=n_bootstrap)
+
+
+def make_prompt_formatter(lm_name, f):
+    def prompt_formatter(tokenizer, instance):
+        return f(
+            tokenizer=tokenizer,
+            instance=instance,
+            use_chat_format="instruct" in lm_name.lower(),
+        )
+
+    return prompt_formatter

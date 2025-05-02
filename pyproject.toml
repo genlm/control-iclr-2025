@@ -10,10 +10,10 @@ version = "0.1.0"
 description = "Experiments for the paper 'Syntactic and Semantic Control for Large Language Models via sequential Monte Carlo'"
 authors = []
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 
 dependencies = [
-    "genlm-eval[spider,molecules] @ git+https://github.com/genlm/genlm-eval.git@benlebrun/dev",
+    "genlm-eval[spider,molecules] @ git+https://github.com/genlm/genlm-eval.git",
     "llamppl @ git+https://github.com/genlm/llamppl.git@improve-resampling",
     "click",
     "asyncio",

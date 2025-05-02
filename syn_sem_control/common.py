@@ -2,9 +2,10 @@ import json
 import click
 import asyncio
 import warnings
-from typing import Type
+from typing import Type, Callable
 from genlm.eval.core import Dataset, Evaluator, run_evaluation
 from syn_sem_control.util import mean_ci_results
+from syn_sem_control import models
 
 
 def common_options(f):
@@ -41,7 +42,7 @@ def common_options(f):
     )(f)
     f = click.option(
         "--lm-args",
-        default='{}',
+        default="{}",
         help="Arguments for genlm.control.PromptedLLM initialization, in json format.",
     )(f)
     f = click.option(
@@ -49,18 +50,6 @@ def common_options(f):
         default=1,
         type=int,
         help="Verbosity level for evaluation.",
-    )(f)
-    f = click.option(
-        "--sampler-cache-size",
-        default=1,
-        type=int,
-        help="Size of LRU cache for initialized samplers.",
-    )(f)
-    f = click.option(
-        "--critic-cache-size",
-        default=1,
-        type=int,
-        help="Size of LRU cache for initialized critics.",
     )(f)
     f = click.option(
         "--n-replicates",
@@ -86,26 +75,64 @@ def common_options(f):
         type=str,
         help="Resampling method (for SMC models).",
     )(f)
+    f = click.option(
+        "--max-instances",
+        default=float("inf"),
+        type=int,
+        help="Maximum number of instances in the dataset to evaluate.",
+    )(f)
     return f
 
 
-def setup_model_and_params(model_type: str, kwargs: dict, model_classes: dict):
-    """Helper function to set up model class and adjust sampling parameters."""
-    model_class, needs_particles, needs_ess, needs_resampling_method = model_classes[model_type]
-    
-    # Adjust sampling parameters if not needed, warning if they were set
-    if not needs_particles and kwargs.get("n_particles", 1) != 1:
-        warnings.warn(f"Model type '{model_type}' doesn't use particles. Overriding n_particles=1")
+MODEL_CLASSES = {
+    # model_type : (class, needs_particles, needs_ess, needs_resampling_method)
+    "base": (models.BaseLM, False, False, False),
+    "lcd": (models.FastImproperlyWeighted, False, False, False),
+    "grammar-only-is": (models.FastProperlyWeighted, True, False, False),
+    "grammar-only-smc": (models.FastProperlyWeighted, True, True, True),
+    "sample-rerank": (models.FullImproperlyWeighted, True, False, False),
+    "full-is": (models.FullProperlyWeighted, True, False, False),
+    "full-smc": (models.FullProperlyWeighted, True, True, True),
+}
+
+
+def setup_model_and_params(model_type: str, kwargs: dict):
+    """Helper function to set up model class and adjust sampling parameters.
+
+    Args:
+        model_type (str): Type of model to use
+        kwargs (dict): Model parameters
+        model_classes (dict): Dictionary mapping model types to (class, needs_particles, needs_ess, needs_resampling)
+
+    Returns:
+        tuple: (model_class, validated_kwargs)
+    """
+    model_class, needs_particles, needs_ess, needs_resampling = MODEL_CLASSES[
+        model_type
+    ]
+
+    # Validate and adjust parameters based on model requirements
+    if not needs_particles:
+        if kwargs.get("n_particles", 1) != 1:
+            warnings.warn(
+                f"Model type '{model_type}' doesn't use particles. Setting n_particles=1"
+            )
         kwargs["n_particles"] = 1
-        
-    if not needs_ess and kwargs.get("ess_threshold", 0.0) != 0.0:
-        warnings.warn(f"Model type '{model_type}' doesn't use ESS. Overriding ess_threshold=0.0")
+
+    if not needs_ess:
+        if kwargs.get("ess_threshold", 0.0) != 0.0:
+            warnings.warn(
+                f"Model type '{model_type}' doesn't use ESS. Setting ess_threshold=0.0"
+            )
         kwargs["ess_threshold"] = 0.0
-        
-    if not needs_resampling_method and kwargs.get("resampling_method", None) is not None:
-        warnings.warn(f"Model type '{model_type}' doesn't use resampling. Provided resampling method will be ignored.")
+
+    if not needs_resampling:
+        if kwargs.get("resampling_method") is not None:
+            warnings.warn(
+                f"Model type '{model_type}' doesn't use resampling. Setting resampling_method=None"
+            )
         kwargs["resampling_method"] = None
-    
+
     return model_class, kwargs
 
 
@@ -122,34 +149,52 @@ def run_model_evaluation(
     output_dir: str,
     overwrite_results: bool,
     overwrite_outputs: bool,
-    sampler_cache_size: int,
-    critic_cache_size: int,
     lm_args: str,
     verbosity: int,
+    potential_factory: models.PotentialFactory,
+    cache_key_fn: Callable,
+    prompt_formatter: Callable,
+    max_instances: int = float("inf"),
+    max_cache_size: int = 1,
+    **kwargs,
 ):
     """Common evaluation logic across domains"""
+    # default to multinomial resampling method, but this will not be used for models with ess_threshold=0.0 or n_particles=1
+    resampling_method = resampling_method or "multinomial"
+
     model = model_class(
-        model_name=lm_name,
+        # Language model parameters
+        lm_name=lm_name,
+        lm_args=json.loads(lm_args),
+        # Sampling parameters
         ess_threshold=ess_threshold,
         n_particles=n_particles,
         max_tokens=max_tokens,
-        lm_args=json.loads(lm_args),
-        sampler_cache_size=sampler_cache_size,
-        critic_cache_size=critic_cache_size,
-        # default to multinomial resampling method, but this will not be used for models with ess_threshold=0.0 or n_particles=1
-        resampling_method=resampling_method if resampling_method is not None else 'multinomial',
+        resampling_method=resampling_method,
+        # Potential factory
+        potential_factory=potential_factory,
+        # Prompt formatter
+        prompt_formatter=prompt_formatter,
+        # Caching parameters
+        cache_key_fn=cache_key_fn,
+        max_cache_size=max_cache_size,
+        # Other parameters
+        **kwargs,
     )
 
-    results = asyncio.run(run_evaluation(
-        dataset=dataset,
-        model=model,
-        evaluator=evaluator,
-        n_replicates=n_replicates,
-        verbosity=verbosity,
-        overwrite_results=overwrite_results,
-        overwrite_outputs=overwrite_outputs,
-        output_dir=output_dir,
-    ))
+    results = asyncio.run(
+        run_evaluation(
+            dataset=dataset,
+            model=model,
+            evaluator=evaluator,
+            n_replicates=n_replicates,
+            verbosity=verbosity,
+            max_instances=max_instances,
+            overwrite_results=overwrite_results,
+            overwrite_outputs=overwrite_outputs,
+            output_dir=output_dir,
+        )
+    )
 
     mean, lower, upper = mean_ci_results(results)
     print(f"Mean weighted accuracy: {mean}")
