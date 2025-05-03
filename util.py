@@ -2,8 +2,8 @@ from genlm.control.sampler import EagerSetSampler, SetTokenSampler
 
 
 class ImproperlyWeightedSetTokenSampler(SetTokenSampler):
-    def sample(self, context):
-        x, _, logp = super().sample(context)
+    async def sample(self, context):
+        x, _, logp = await super().sample(context)
         return x, 0, logp
 
 
