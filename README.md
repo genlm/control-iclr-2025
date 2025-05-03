@@ -2,7 +2,7 @@
 
 [![arXiv](https://img.shields.io/badge/arXiv-2504.13139-b31b1b.svg)](https://arxiv.org/abs/2504.13139)
 
-This repository contains the code for the experiments in the paper *Syntactic and Semantic Control for Large Language Models via sequential Monte Carlo* (ICLR 2025). 
+This repository contains the code for the experiments in the paper *Syntactic and Semantic Control for Large Language Models via sequential Monte Carlo* (ICLR 2025).
 
 For the controlled generation library underlying the models implemented here, see [genlm/genlm-control](https://github.com/genlm/genlm-control). Our the experiments are run using the [genlm/genlm-eval](https://github.com/genlm/genlm-eval) library.
 
