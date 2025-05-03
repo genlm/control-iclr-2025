@@ -21,4 +21,3 @@ Download the GBD-17 dataset (`GDB17.50000000.smi.gz`) from [here](https://gdb.un
 ## Models and baselines
 
 All models can be run through the `cli.py` script. See `run_all.sh` for the argument configurations used to run the models and baselines in the paper.
-

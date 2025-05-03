@@ -40,7 +40,7 @@ class Model(ABC):
         cache_key_fn=None,
         max_cache_size: int = 1,
         lm_args=None,
-        eos_token_factory = None,
+        eos_token_factory=None,
     ):
         self.lm_name = lm_name
         self.lm_args = lm_args or {}

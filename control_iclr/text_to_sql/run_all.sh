@@ -59,4 +59,3 @@ python cli.py --model-type full-smc \
     --output-dir $RESULTS_DIR/full_smc \
     --max-instances $MAX_INSTANCES \
     --lm-args $GPU_LM_ARGS
-
