@@ -166,7 +166,7 @@ class PotentialFactory(ABC):
 
     @abstractmethod
     def get_fast_potential(self, instance):
-        """Creates a fast potential function for token-level scoring.
+        """Creates a fast potential function.
 
         Args:
             instance (genlm.eval.Instance): Input instance to create potential function for
@@ -178,7 +178,7 @@ class PotentialFactory(ABC):
 
     @abstractmethod
     def get_expensive_potential(self, instance):
-        """Creates an expensive potential function for sequence-level scoring.
+        """Creates an expensive potential function.
 
         Args:
             instance (genlm.eval.Instance): Input instance to create potential function for
