@@ -7,13 +7,14 @@ from genlm.eval.domains.spider import (
     SpiderEvaluator,
     default_prompt_formatter,
 )
-from syn_sem_control.models import PotentialFactory
-from syn_sem_control.common import (
+
+from control_iclr.models import PotentialFactory
+from control_iclr.common import (
     common_options,
     run_model_evaluation,
     setup_model_and_params,
 )
-from syn_sem_control.util import make_prompt_formatter
+from control_iclr.util import make_prompt_formatter
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 

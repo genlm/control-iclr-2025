@@ -25,6 +25,7 @@ class Model(ABC):
         resampling_method (str): Method to use for resampling
         cache_key_fn: Function to generate cache key for instances. Takes an instance and returns a cache key. If None, caching is disabled.
         max_cache_size: Maximum number of cached samplers
+        eos_token_factory: Function to generate EOS tokens for the language model. Takes a language model and returns a list of EOS tokens. If None, the language model's EOS tokens are used.
     """
 
     def __init__(
@@ -39,6 +40,7 @@ class Model(ABC):
         cache_key_fn=None,
         max_cache_size: int = 1,
         lm_args=None,
+        eos_token_factory = None,
     ):
         self.lm_name = lm_name
         self.lm_args = lm_args or {}
@@ -50,11 +52,17 @@ class Model(ABC):
         self.max_tokens = max_tokens
         self.cache_key_fn = cache_key_fn
         self.max_cache_size = max_cache_size
-        self._sampler_cache = OrderedDict()  # Use OrderedDict for FIFO eviction
+        self._sampler_cache = OrderedDict()
+        self.eos_token_factory = eos_token_factory
 
     @cached_property
     def llm(self):
-        return PromptedLLM.from_name(self.lm_name, **self.lm_args)
+        llm = PromptedLLM.from_name(self.lm_name, **self.lm_args)
+        if self.eos_token_factory is None:
+            return llm
+        else:
+            eos_tokens = self.eos_token_factory(llm)
+            return llm.spawn_new_eos(eos_tokens)
 
     def get_cache_key(self, instance):
         """Get cache key for an instance if caching is enabled."""

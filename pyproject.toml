@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools_scm]
 
 [project]
-name = "syn-sem-control"
+name = "control-iclr-2025"
 version = "0.1.0"
 description = "Experiments for the paper 'Syntactic and Semantic Control for Large Language Models via sequential Monte Carlo'"
 authors = []
@@ -22,4 +22,4 @@ dependencies = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["syn_sem_control", "syn_sem_control*"]
+include = ["control_iclr", "control_iclr*"]

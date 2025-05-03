@@ -4,8 +4,9 @@ import asyncio
 import warnings
 from typing import Type, Callable
 from genlm.eval.core import Dataset, Evaluator, run_evaluation
-from syn_sem_control.util import mean_ci_results
-from syn_sem_control import models
+
+from .util import mean_ci_results
+from . import models
 
 
 def common_options(f):
@@ -77,7 +78,7 @@ def common_options(f):
     )(f)
     f = click.option(
         "--max-instances",
-        default=float("inf"),
+        default=100000,
         type=int,
         help="Maximum number of instances in the dataset to evaluate.",
     )(f)

@@ -2,18 +2,18 @@ import click
 from genlm.control import BoolCFG
 from genlm.eval.domains.molecular_synthesis import (
     MolecularSynthesisDataset,
-    PartialSmiles,
+    PartialSMILES,
     MolecularSynthesisEvaluator,
     default_prompt_formatter,
 )
 
-from syn_sem_control.models import PotentialFactory
-from syn_sem_control.common import (
+from control_iclr.models import PotentialFactory
+from control_iclr.common import (
     common_options,
     run_model_evaluation,
     setup_model_and_params,
 )
-from syn_sem_control.util import make_prompt_formatter
+from control_iclr.util import make_prompt_formatter
 
 
 class MolecularSynthesisPotentialFactory(PotentialFactory):
@@ -25,7 +25,7 @@ class MolecularSynthesisPotentialFactory(PotentialFactory):
         return BoolCFG.from_lark(self.grammar)
 
     def get_expensive_potential(self, instance):
-        return PartialSmiles()
+        return PartialSMILES()
 
 
 @click.command(help="Run Molecular Synthesis evaluation.")
@@ -66,6 +66,9 @@ def main(**kwargs):
         kwargs.get("lm_name", ""), default_prompt_formatter
     )
 
+    def eos_token_factory(llm):
+        return [t for t in llm.vocab if b"\n" in t]
+
     run_model_evaluation(
         dataset=dataset,
         model_class=model_class,
@@ -73,6 +76,7 @@ def main(**kwargs):
         potential_factory=potential_factory,
         cache_key_fn=cache_key_fn,
         prompt_formatter=prompt_formatter,
+        eos_token_factory=eos_token_factory,
         **kwargs,
     )
 

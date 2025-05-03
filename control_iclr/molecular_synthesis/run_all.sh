@@ -4,7 +4,7 @@
 
 RESULTS_DIR=results
 SMILES_FILE="GDB17.50000000.smi"
-GPU_LM_ARGS='{"engine_opts" : {"max_model_len" : 7760, "rope_scaling": {"rope_type": "dynamic", "factor": 8.0}}}'
+GPU_LM_ARGS="{\"engine_opts\":{\"max_model_len\":7760,\"rope_scaling\":{\"rope_type\":\"dynamic\",\"factor\":8.0}}}"
 MODEL_NAME="meta-llama/Meta-Llama-3.1-8B"
 
 # Base language model
