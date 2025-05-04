@@ -131,7 +131,7 @@ class Model(ABC):
         sampler = self.make_sampler(instance)
         critic = self.make_critic(instance)
         if critic is not None:
-            critic.coerce(self.llm, f=b"".join)
+            critic = critic.coerce(self.llm, f=b"".join)
 
         json_path = os.path.join(
             output_dir, f"{instance.instance_id}-{replicate}-record.json"
