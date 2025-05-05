@@ -226,20 +226,15 @@ class FastImproperlyWeighted(FastBase):
         return improperly_weighted_eager_token_sampler
 
 
-class ExpensivePotentialMixin:
-    """Mixin class to add expensive potential functions."""
+class FullProperlyWeighted(FastProperlyWeighted):
+    """Complete model using properly weighted sampling and both potentials."""
 
     def make_critic(self, instance):
         return self.potential_factory.get_expensive_potential(instance)
 
 
-class FullProperlyWeighted(FastProperlyWeighted, ExpensivePotentialMixin):
-    """Complete model using properly weighted sampling and both potentials."""
-
-    pass
-
-
-class FullImproperlyWeighted(FastImproperlyWeighted, ExpensivePotentialMixin):
+class FullImproperlyWeighted(FastImproperlyWeighted):
     """Complete model using improperly weighted sampling and both potentials."""
 
-    pass
+    def make_critic(self, instance):
+        return self.potential_factory.get_expensive_potential(instance)
