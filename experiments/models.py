@@ -238,3 +238,13 @@ class FullImproperlyWeighted(FastImproperlyWeighted):
 
     def make_critic(self, instance):
         return self.potential_factory.get_expensive_potential(instance)
+
+
+class DirectProperlyWeighted(Model):
+    """Direct LM proposal + properly-weighted critic."""
+
+    def _make_sampler(self, instance):
+        return direct_token_sampler(self.llm)
+
+    def make_critic(self, instance):
+        return self.potential_factory.get_expensive_potential(instance)
