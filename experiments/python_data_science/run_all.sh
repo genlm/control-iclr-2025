@@ -9,7 +9,7 @@ MODEL_NAME="meta-llama/Meta-Llama-3.1-8B"
 
 
 # Base language model
-python cli.py --lm-name $MODEL_NAME --model-type base --smiles-file $SMILES_FILE --lm-args $GPU_LM_ARGS --output-dir $RESULTS_DIR/base_lm
+python cli.py --lm-name $MODEL_NAME --model-type base --lm-args $GPU_LM_ARGS --output-dir $RESULTS_DIR/base_lm
 
 
 # Full Importance Sampling
