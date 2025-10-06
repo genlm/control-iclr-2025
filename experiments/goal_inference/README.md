@@ -6,7 +6,7 @@ This directory contains the code for running inference on the Planetarium datase
 
 ### 1. Install dependencies
 
-Make sure that `genlm-eval` and its dependencies for Spider are installed:
+Make sure that `genlm-eval` and its dependencies for Planetarium are installed:
 
 ```bash
 pip install git+https://github.com/genlm/genlm-eval.git[goal_inference]
