@@ -4,9 +4,9 @@ import os
 
 from genlm.eval.domains.ds1000 import (
     DS1000Dataset,
-    DS1000Evaluator, 
-    DS1000RuntimeNoErrorPotential, 
-    default_prompt_formatter
+    DS1000Evaluator,
+    DS1000RuntimeNoErrorPotential,
+    default_prompt_formatter,
 )
 
 from experiments.models import PotentialFactory
@@ -23,7 +23,7 @@ class DS1000PotentialFactory(PotentialFactory):
         self.env_py = str(env_py)
         self.timeout_s = timeout_s
 
-    def get_fast_potential(self, instance): # No trivial potential in DS1000
+    def get_fast_potential(self, instance):  # No trivial potential in DS1000
         pass
 
     def get_expensive_potential(self, instance):
@@ -47,7 +47,6 @@ class DS1000PotentialFactory(PotentialFactory):
     default=128,
     help="Maximum number of tokens to generate.",
 )
-
 def main(**kwargs):
     model_type = kwargs.pop("model_type")
 
@@ -56,9 +55,13 @@ def main(**kwargs):
         split="test",
     )
 
-    
     root = Path.cwd()
-    env_py = root / ".ds1000env" / ("Scripts" if os.name == "nt" else "bin") / ("python.exe" if os.name == "nt" else "python")
+    env_py = (
+        root
+        / ".ds1000env"
+        / ("Scripts" if os.name == "nt" else "bin")
+        / ("python.exe" if os.name == "nt" else "python")
+    )
     print(env_py, env_py.exists())
 
     evaluator = DS1000Evaluator(
@@ -73,7 +76,7 @@ def main(**kwargs):
     prompt_formatter = make_prompt_formatter(
         kwargs.get("lm_name", ""), default_prompt_formatter
     )
-        
+
     run_model_evaluation(
         dataset=dataset,
         model_class=model_class,
