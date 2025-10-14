@@ -1,6 +1,5 @@
 import click
 from pathlib import Path
-from typing import Optional
 from genlm.control import BoolCFG
 
 from genlm.eval.domains.goal_inference import (
@@ -22,6 +21,8 @@ from experiments.util import make_prompt_formatter
 class GoalInferencePotentialFactory(PotentialFactory):
     """
     Produces the fast (grammar/static) and expensive (plan validation) potentials.
+    If the instance provides a lark_grammar, that is preferred; otherwise use grammar_text.
+    If no plan is available or expensive checks are disabled, returns a NeutralPotential.
     """
     def __init__(
         self,
@@ -123,10 +124,10 @@ def main(**kwargs):
         kwargs.get("lm_name", ""),
         goal_default_prompt_formatter,
     )
-
-    # EOS tokens
+    
+    # EOS tokens (stop on newline by default)
     def eos_token_factory(llm):
-        return [t for t in llm.vocab if b"\n" in t or b"\r" in t]
+        return [t for t in llm.vocab if b'))' in t]
 
     run_model_evaluation(
         dataset=dataset,
