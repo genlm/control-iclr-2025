@@ -24,6 +24,7 @@ class GoalInferencePotentialFactory(PotentialFactory):
     If the instance provides a lark_grammar, that is preferred; otherwise use grammar_text.
     If no plan is available or expensive checks are disabled, returns a NeutralPotential.
     """
+
     def __init__(
         self,
         domain_path: str,
@@ -32,7 +33,7 @@ class GoalInferencePotentialFactory(PotentialFactory):
         val_cmd: str = "Validate",
         cache_root: str | Path = "./cache",
         verbosity: int = 0,
-        timeout_seconds: float = 10.0
+        timeout_seconds: float = 180.0,
     ):
         self.goal_grammar_text = goal_grammar_text
         self.val_cmd = val_cmd
@@ -43,7 +44,7 @@ class GoalInferencePotentialFactory(PotentialFactory):
 
         with open(domain_path) as f:
             self.domain_text = f.read()
-        
+
     def get_fast_potential(self, instance):
         return BoolCFG.from_lark(self.goal_grammar_text)
 
@@ -71,21 +72,17 @@ class GoalInferencePotentialFactory(PotentialFactory):
     type=click.Path(exists=True, dir_okay=False),
     help="Optional path to a Lark grammar file for goals (used as fallback).",
 )
-
 @click.option(
     "--max-tokens",
     default=150,
     help="Maximum number of tokens to generate.",
 )
-
 def main(**kwargs):
     # Pull common & task-specific args
     model_type = kwargs.pop("model_type")
     grammar_path = kwargs.pop("grammar_path", None)
     verbosity = int(kwargs.pop("verbosity", 0))
 
-    hf_subset ="default"
-    hf_split = "test"
     max_objects = 9
     domains_opt = ["blocksworld"]
 
@@ -96,14 +93,12 @@ def main(**kwargs):
 
     # Setup model
     model_class, kwargs = setup_model_and_params(model_type, kwargs)
-    
+
     dataset = GoalInferenceDataset.from_hf_planetarium(
-        split=hf_split,
-        subset=hf_subset,
         max_objects=max_objects,
         domains=domains_opt,
     )
-        
+
     # Evaluator
     evaluator = GoalInferenceEvaluator()
 
@@ -124,10 +119,10 @@ def main(**kwargs):
         kwargs.get("lm_name", ""),
         goal_default_prompt_formatter,
     )
-    
+
     # EOS tokens (stop on newline by default)
     def eos_token_factory(llm):
-        return [t for t in llm.vocab if b'))' in t]
+        return [t for t in llm.vocab if b"))" in t]
 
     run_model_evaluation(
         dataset=dataset,
