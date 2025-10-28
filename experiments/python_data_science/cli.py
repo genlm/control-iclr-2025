@@ -31,27 +31,35 @@ class DS1000PotentialFactory(PotentialFactory):
             code_context=instance.code_context,
             python_executable=self.env_py,
             extra_env={"PYTHONHASHSEED": "0"},
-            timeout_seconds=15.0,
+            timeout_seconds=self.timeout_s,
         )
 
 
 @click.command(help="Run DS1000 evaluation.")
+@click.option(
+    "--libraries",
+    default=None,
+    multiple=True,
+    help="Libraries to include in the environment, comma-separated (e.g. numpy,pandas).",
+)
 @common_options
 @click.option(
     "--lm-name",
-    default="meta-llama/Meta-Llama-3.1-8B",
+    default="meta-llama/Meta-Llama-3-8B",
     help="Name of the language model to use.",
 )
 @click.option(
     "--max-tokens",
-    default=128,
+    default=500,
     help="Maximum number of tokens to generate.",
 )
 def main(**kwargs):
     model_type = kwargs.pop("model_type")
 
     model_class, kwargs = setup_model_and_params(model_type, kwargs)
+    libraries = kwargs.pop("libraries")
     dataset = DS1000Dataset.from_hf(
+        libraries=libraries,
         split="test",
     )
 
@@ -77,12 +85,24 @@ def main(**kwargs):
         kwargs.get("lm_name", ""), default_prompt_formatter
     )
 
+    # EOS tokens
+    def eos_token_factory(llm):
+        return [
+            t
+            for t in llm.vocab
+            if b"</code>" in t
+            or b"</code>".startswith(t)
+            or b"END SOLUTION" in t
+            or b"END SOLUTION".startswith(t)
+        ]
+
     run_model_evaluation(
         dataset=dataset,
         model_class=model_class,
         evaluator=evaluator,
         potential_factory=DS1000PotentialFactory(env_py=env_py),
         cache_key_fn=cache_key_fn,
+        eos_token_factory=eos_token_factory,  # Agressive EOS
         prompt_formatter=prompt_formatter,
         **kwargs,
     )
