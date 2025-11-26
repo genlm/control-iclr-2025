@@ -4,6 +4,7 @@ from functools import cached_property
 from abc import ABC, abstractmethod
 from genlm.eval import ModelOutput, ModelResponse
 from genlm.control import direct_token_sampler, eager_token_sampler, PromptedLLM
+from genlm.control.sampler.token import SampleUntil
 from .util import improperly_weighted_eager_token_sampler
 from collections import OrderedDict
 
@@ -235,6 +236,38 @@ class FullProperlyWeighted(FastProperlyWeighted):
 
 class FullImproperlyWeighted(FastImproperlyWeighted):
     """Complete model using improperly weighted sampling and both potentials."""
+
+    def make_critic(self, instance):
+        return self.potential_factory.get_expensive_potential(instance)
+
+
+def newline_tokens_from_bytes(llm):
+    s = set()
+    for t in llm.vocab_eos:
+        if isinstance(t, int) and t == 10:  # LF
+            s.add(t)
+        elif isinstance(t, (bytes, bytearray, memoryview)) and b"\n" in bytes(t):
+            s.add(t)
+    return s
+
+
+class DirectProperlyWeightedSampleUntil(Model):
+    """Direct LM proposal + properly-weighted critic, boundary-aligned."""
+
+    def _make_sampler(self, instance):
+        return SampleUntil(
+            self.llm, stop_tokens=[t for t in self.llm.vocab if t.endswith(b"\n")]
+        )
+
+    def make_critic(self, instance):
+        return self.potential_factory.get_expensive_potential(instance)
+
+
+class DirectProperlyWeighted(Model):
+    """Direct LM proposal + properly-weighted critic."""
+
+    def _make_sampler(self, instance):
+        return direct_token_sampler(self.llm)
 
     def make_critic(self, instance):
         return self.potential_factory.get_expensive_potential(instance)

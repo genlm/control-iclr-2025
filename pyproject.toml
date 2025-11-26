@@ -13,7 +13,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 
 dependencies = [
-    "genlm-eval[spider,molecules,goal_inference] @ git+https://github.com/genlm/genlm-eval.git",
+    "genlm-eval[spider,molecules,goal_inference,ds1000] @ git+https://github.com/genlm/genlm-eval.git",
     "llamppl @ git+https://github.com/genlm/llamppl.git@improve-resampling",
     "click",
     "asyncio",
