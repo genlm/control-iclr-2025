@@ -77,13 +77,18 @@ class GoalInferencePotentialFactory(PotentialFactory):
     default=150,
     help="Maximum number of tokens to generate.",
 )
+@click.option(
+    "--max-objects",
+    default=9,
+    help="Maximum number of tokens to generate.",
+)
 def main(**kwargs):
     # Pull common & task-specific args
     model_type = kwargs.pop("model_type")
     grammar_path = kwargs.pop("grammar_path", None)
     verbosity = int(kwargs.pop("verbosity", 0))
-
-    max_objects = 9
+    max_objects = kwargs.pop("max_objects")
+    
     domains_opt = ["blocksworld"]
 
     # Load optional grammar text
