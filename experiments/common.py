@@ -95,7 +95,7 @@ MODEL_CLASSES = {
     "full-is": (models.FullProperlyWeighted, True, False, False),
     "full-smc": (models.FullProperlyWeighted, True, True, True),
     "critic-is": (models.DirectProperlyWeighted, True, False, False),
-    "critic-smc": (models.DirectProperlyWeighted, True, True, True),
+    "critic-smc": (models.DirectProperlyWeightedSampleUntil, True, True, True),
 }
 
 

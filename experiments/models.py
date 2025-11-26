@@ -251,7 +251,7 @@ def newline_tokens_from_bytes(llm):
     return s
 
 
-class DirectProperlyWeighted(Model):
+class DirectProperlyWeightedSampleUntil(Model):
     """Direct LM proposal + properly-weighted critic, boundary-aligned."""
 
     def _make_sampler(self, instance):
@@ -263,7 +263,7 @@ class DirectProperlyWeighted(Model):
         return self.potential_factory.get_expensive_potential(instance)
 
 
-class DirectProperlyWeightedDefaultSampler(Model):
+class DirectProperlyWeighted(Model):
     """Direct LM proposal + properly-weighted critic."""
 
     def _make_sampler(self, instance):

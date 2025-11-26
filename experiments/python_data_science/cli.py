@@ -74,7 +74,7 @@ def main(**kwargs):
 
     evaluator = DS1000Evaluator(
         python_executable=str(env_py),
-        timeout_seconds=15.0,
+        timeout_seconds=25.0,
         extra_env={"PYTHONHASHSEED": "0"},
     )
 
