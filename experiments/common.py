@@ -94,7 +94,7 @@ MODEL_CLASSES = {
     "sample-rerank": (models.FullImproperlyWeighted, True, False, False),
     "full-is": (models.FullProperlyWeighted, True, False, False),
     "full-smc": (models.FullProperlyWeighted, True, True, True),
-    "critic-is": (models.DirectProperlyWeighted, True, False, False),
+    "critic-is": (models.DirectProperlyWeightedSampleUntil, True, False, False),
     "critic-smc": (models.DirectProperlyWeightedSampleUntil, True, True, True),
 }
 

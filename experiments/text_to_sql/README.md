@@ -12,6 +12,11 @@ Make sure that `genlm-eval` and its dependencies for Spider are installed:
 pip install git+https://github.com/genlm/genlm-eval.git[spider]
 ```
 
+or, if that command fails, run:
+```bash
+pip install genlm-eval[spider] @ git+https://github.com/genlm/genlm-eval.git
+```
+
 Note: It is recommended to use a virtual environment, e.g., `conda`, to install the dependencies.
 
 Download the following `nltk` data:
