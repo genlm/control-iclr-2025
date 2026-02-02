@@ -132,7 +132,14 @@ class Model(ABC):
         sampler = self.make_sampler(instance)
         critic = self.make_critic(instance)
         if critic is not None:
-            critic = critic.coerce(self.llm, f=b"".join)
+            critic_class_name = critic.__class__.__name__
+            if "DS1000RuntimeNoError" in critic_class_name:
+                f = lambda toks: [
+                    t for t in toks if isinstance(t, (bytes, bytearray, memoryview))
+                ]
+            else:
+                f = b"".join
+            critic = critic.coerce(self.llm, f=f)
 
         json_path = os.path.join(
             output_dir, f"{instance.instance_id}-{replicate}-record.json"
@@ -256,18 +263,10 @@ class DirectProperlyWeightedSampleUntil(Model):
 
     def _make_sampler(self, instance):
         return SampleUntil(
-            self.llm, stop_tokens=[t for t in self.llm.vocab if t.endswith(b"\n")]
+            self.llm,
+            stop_tokens=[t for t in self.llm.vocab if t.endswith(b"\n")],
+            aggregate_weights=False,
         )
-
-    def make_critic(self, instance):
-        return self.potential_factory.get_expensive_potential(instance)
-
-
-class DirectProperlyWeighted(Model):
-    """Direct LM proposal + properly-weighted critic."""
-
-    def _make_sampler(self, instance):
-        return direct_token_sampler(self.llm)
 
     def make_critic(self, instance):
         return self.potential_factory.get_expensive_potential(instance)

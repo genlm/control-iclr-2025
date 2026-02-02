@@ -5,13 +5,16 @@
 RESULTS_DIR=results
 LM_NAME="meta-llama/Meta-Llama-3.1-8B"
 
-GPU_LM_ARGS="{\"engine_opts\":{\"max_model_len\":7760,\"rope_scaling\":{\"rope_type\":\"dynamic\",\"factor\":8.0}}}"
+GPU_LM_ARGS="{\"engine_opts\":{\"max_model_len\":10000}}"
+
+# To enable RoPE scaling as in the original experiments, uncomment the following line:
+#GPU_LM_ARGS="{\"engine_opts\":{\"max_model_len\":7760,\"rope_scaling\":{\"rope_type\":\"dynamic\",\"factor\":8.0}}}"
 
 # Base language model
-python cli.py --model-type base --lm-name $LM_NAME --output-dir $RESULTS_DIR/base_lm --lm-args $GPU_LM_ARGS
+python cli.py --model-type base --lm-name $LM_NAME --output-dir $RESULTS_DIR/base_lm --lm-args $GPU_LM_ARGS --n-replicates 5
 
 # Locally-constrained decoding
-python cli.py --model-type lcd --lm-name $LM_NAME --output-dir $RESULTS_DIR/lcd --lm-args $GPU_LM_ARGS
+python cli.py --model-type lcd --lm-name $LM_NAME --output-dir $RESULTS_DIR/lcd --lm-args $GPU_LM_ARGS --n-replicates 5
 
 # Grammar-only Importance Sampling
 python cli.py --model-type grammar-only-is \
@@ -19,7 +22,8 @@ python cli.py --model-type grammar-only-is \
     --n-particles 10 \
     --ess-threshold 0.0 \
     --output-dir $RESULTS_DIR/grammar_only_is \
-    --lm-args $GPU_LM_ARGS
+    --lm-args $GPU_LM_ARGS \
+    --n-replicates 5
 
 # Grammar-only SMC
 python cli.py --model-type grammar-only-smc \
@@ -28,7 +32,8 @@ python cli.py --model-type grammar-only-smc \
     --ess-threshold 0.9 \
     --resampling-method multinomial \
     --output-dir $RESULTS_DIR/grammar_only_smc \
-    --lm-args $GPU_LM_ARGS
+    --lm-args $GPU_LM_ARGS \
+    --n-replicates 5
 
 # Sample Rerank
 python cli.py --model-type sample-rerank \
@@ -36,7 +41,8 @@ python cli.py --model-type sample-rerank \
     --n-particles 10 \
     --ess-threshold 0.0 \
     --output-dir $RESULTS_DIR/sample_rerank \
-    --lm-args $GPU_LM_ARGS
+    --lm-args $GPU_LM_ARGS \
+    --n-replicates 5
 
 # Full Importance Sampling
 python cli.py --model-type full-is \
@@ -44,7 +50,8 @@ python cli.py --model-type full-is \
     --n-particles 10 \
     --ess-threshold 0.0 \
     --output-dir $RESULTS_DIR/full_is \
-    --lm-args $GPU_LM_ARGS
+    --lm-args $GPU_LM_ARGS \
+    --n-replicates 5
 
 # Full SMC
 python cli.py --model-type full-smc \
@@ -53,4 +60,5 @@ python cli.py --model-type full-smc \
     --ess-threshold 0.9 \
     --resampling-method multinomial \
     --output-dir $RESULTS_DIR/full_smc \
-    --lm-args $GPU_LM_ARGS
+    --lm-args $GPU_LM_ARGS \
+    --n-replicates 5

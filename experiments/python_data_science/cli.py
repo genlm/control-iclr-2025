@@ -23,7 +23,7 @@ class DS1000PotentialFactory(PotentialFactory):
         self.env_py = str(env_py)
         self.timeout_s = timeout_s
 
-    def get_fast_potential(self, instance):  # No trivial potential in DS1000
+    def get_fast_potential(self, instance):  # No fast potential in DS1000
         pass
 
     def get_expensive_potential(self, instance):
@@ -102,7 +102,7 @@ def main(**kwargs):
         evaluator=evaluator,
         potential_factory=DS1000PotentialFactory(env_py=env_py),
         cache_key_fn=cache_key_fn,
-        eos_token_factory=eos_token_factory,  # Agressive EOS
+        eos_token_factory=eos_token_factory,
         prompt_formatter=prompt_formatter,
         **kwargs,
     )
