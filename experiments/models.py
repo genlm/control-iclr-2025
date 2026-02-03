@@ -4,7 +4,6 @@ from functools import cached_property
 from abc import ABC, abstractmethod
 from genlm.eval import ModelOutput, ModelResponse
 from genlm.control import direct_token_sampler, eager_token_sampler, PromptedLLM
-from genlm.control.sampler.token import SampleUntil
 from .util import improperly_weighted_eager_token_sampler
 from collections import OrderedDict
 
@@ -262,6 +261,8 @@ class DirectProperlyWeightedSampleUntil(Model):
     """Direct LM proposal + properly-weighted critic, boundary-aligned."""
 
     def _make_sampler(self, instance):
+        from genlm.control.sampler.token import SampleUntil
+
         return SampleUntil(
             self.llm,
             stop_tokens=[t for t in self.llm.vocab if t.endswith(b"\n")],
